@@ -8,7 +8,7 @@ from itertools import cycle
 DATA_FILE = os.path.normpath("data/dialogue_master_list.csv")
 
 # ANSI color codes for highlighting
-BOLD_BLUE = "\033[1;34m"  # Bold Blue for Conspirators
+BOLD_GOLD = "\033[1;33m"  # Bold Gold for Conspirators
 BOLD_RED = "\033[1;31m"   # Bold Red for Victims
 RESET = "\033[0m"         # Reset color
 
@@ -16,7 +16,7 @@ RESET = "\033[0m"         # Reset color
 def highlight_text(text, category):
     """Highlights Conspirators and Victims in different colors."""
     if category == "conspirator":
-        return f"{BOLD_BLUE}{text}{RESET}"
+        return f"{BOLD_GOLD}{text}{RESET}"
     elif category == "victim":
         return f"{BOLD_RED}{text}{RESET}"
     return text
