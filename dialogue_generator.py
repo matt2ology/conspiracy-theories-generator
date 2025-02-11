@@ -2,6 +2,7 @@ import csv
 import os
 import random
 import time
+from itertools import cycle
 
 # Normalize file path for cross-platform compatibility
 DATA_FILE = os.path.normpath("data/dialogue_master_list.csv")
@@ -22,12 +23,12 @@ def highlight_text(text, category):
 
 
 def load_csv_data(csv_file):
-    """Loads CSV and returns a dictionary of columns with non-empty values."""
+    """Loads CSV and ensures every column has available values (no empty entries)."""
     data = {
-        "conspirator": set(),  # Use sets to prevent duplicates
+        "conspirator": [],
         "conspirator_link": [],
         "victim_link": [],
-        "victim": set(),
+        "victim": [],
         "non_sequitur": [],
     }
 
@@ -38,84 +39,87 @@ def load_csv_data(csv_file):
             for key in data:
                 value = row.get(key, "").strip()
                 if value:
-                    if key in ["conspirator", "victim"]:  # Ensure unique conspirators & victims
-                        data[key].add(value)
-                    else:
-                        data[key].append(value)  # Store non-empty values only
+                    data[key].append(value)  # Store non-empty values only
 
-    # Convert sets back to lists for random selection
-    data["conspirator"] = list(data["conspirator"])
-    data["victim"] = list(data["victim"])
-    return data
+    # Ensure every category has data by recycling values if needed
+    for key in data:
+        if not data[key]:
+            # Use non_sequitur as fallback
+            data[key] = list(data["non_sequitur"])
+
+    # Convert all lists to cycles for endless iteration
+    return {key: cycle(random.sample(values, len(values))) for key, values in data.items()}, data["conspirator"]
 
 
-def get_random_entry(data, key, category=None, used_items=set()):
-    """Returns a highlighted random entry from a column, avoiding duplicates when necessary."""
-    available_choices = list(set(data[key]) - used_items) if key in data else []
-    
-    if not available_choices:
-        return "Unknown"  # Fallback when no available choices left
-    
-    entry = random.choice(available_choices)
-    used_items.add(entry)
+def get_next_entry(data, key, category=None):
+    """Fetches the next random entry from the list."""
+    entry = next(data[key])
     return highlight_text(entry, category) if category else entry
 
 
-def display_random_dialogue_sample(data):
-    """Displays the dialogue with fresh randomness at every print, ensuring unique conspirators."""
+def display_random_dialogue_debug(data, conspirator_list):
+    """Displays the dialogue with unique conspirators and randomized selections."""
     used_conspirators = set()
+
+    def get_unique_conspirator():
+        """Ensures a unique conspirator is selected per round."""
+        available = [c for c in conspirator_list if c not in used_conspirators]
+        if not available:
+            used_conspirators.clear()  # Reset if all have been used
+            available = conspirator_list[:]
+        chosen = random.choice(available)
+        used_conspirators.add(chosen)
+        return highlight_text(chosen, "conspirator")
 
     print("\n--- Random Dialogue State ---")
-
-    conspirator1 = get_random_entry(data, "conspirator", "conspirator", used_conspirators)
-    conspirator_link = get_random_entry(data, "conspirator_link")
-    conspirator2 = get_random_entry(data, "conspirator", "conspirator", used_conspirators)
-    victim_link = get_random_entry(data, "victim_link")
-    victim = get_random_entry(data, "victim", "victim")
-    non_sequitur = get_random_entry(data, "non_sequitur")
+    conspirator1 = get_unique_conspirator()
+    conspirator2 = get_unique_conspirator()
 
     print(f"🔹 Conspirator01: {conspirator1}")
-    time.sleep(1)
-    print(f"🔄 Conspirator Link: {conspirator_link}")
-    time.sleep(1)
+    print(f"🔄 Conspirator Link: {get_next_entry(data, 'conspirator_link')}")
     print(f"🔹 Conspirator02: {conspirator2}")
+    print(f"🔗 Victim Link: {get_next_entry(data, 'victim_link')}")
+    print(f"🎯 Victim: {get_next_entry(data, 'victim', 'victim')}")
+    print(f"🤯 Non-Sequitur: {get_next_entry(data, 'non_sequitur')}")
     time.sleep(1)
-    print(f"🔗 Victim Link: {victim_link}")
-    time.sleep(1)
-    print(f"🎯 Victim: {victim}")
-    time.sleep(1)
-    print(f"🤯 Non-Sequitur: {non_sequitur}")
-    time.sleep(5)
 
-def display_random_dialogue(data):
-    """Displays the dialogue with fresh randomness at every print, ensuring unique conspirators."""
+
+def display_random_dialogue(data, conspirator_list):
+    """Displays the dialogue with unique conspirators and randomized selections."""
     used_conspirators = set()
 
-    conspirator1 = get_random_entry(data, "conspirator", "conspirator", used_conspirators)
-    conspirator_link = get_random_entry(data, "conspirator_link")
-    conspirator2 = get_random_entry(data, "conspirator", "conspirator", used_conspirators)
-    victim_link = get_random_entry(data, "victim_link")
-    victim = get_random_entry(data, "victim", "victim")
-    non_sequitur = get_random_entry(data, "non_sequitur")
+    def get_unique_conspirator():
+        """Ensures a unique conspirator is selected per round."""
+        available = [c for c in conspirator_list if c not in used_conspirators]
+        if not available:
+            used_conspirators.clear()  # Reset if all have been used
+            available = conspirator_list[:]
+        chosen = random.choice(available)
+        used_conspirators.add(chosen)
+        return highlight_text(chosen, "conspirator")
 
-    print(f"The {conspirator1}")
+    conspirator1 = get_unique_conspirator()
+    conspirator2 = get_unique_conspirator()
+
+    print(f"The {conspirator1}", end="\n\n")
     time.sleep(1)
-    print(f"{conspirator_link}")
+    print(f"{get_next_entry(data, 'conspirator_link')}", end="\n\n")
     time.sleep(1)
-    print(f"the {conspirator2}")
+    print(f"the {conspirator2}", end="\n\n")
     time.sleep(1)
-    print(f"{victim_link}")
+    print(f"{get_next_entry(data, 'victim_link')}", end="\n\n")
     time.sleep(1)
-    print(f"{victim}")
+    print(f"{get_next_entry(data, 'victim', 'victim')}", end="\n\n")
     time.sleep(1)
     print("\n")
-    print(f"{non_sequitur}")
+    print(f"{get_next_entry(data, 'non_sequitur')}")
     time.sleep(5)
 
 
 if __name__ == "__main__":
     while True:
-        # Clear screen before displaying dialogue
         os.system('cls' if os.name == 'nt' else 'clear')
-        csv_data = load_csv_data(DATA_FILE)
-        display_random_dialogue(csv_data)
+        csv_data, conspirator_list = load_csv_data(DATA_FILE)
+        display_random_dialogue(csv_data, conspirator_list)
+        #display_random_dialogue_debug(csv_data, conspirator_list)
+
