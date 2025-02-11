@@ -121,5 +121,4 @@ if __name__ == "__main__":
         os.system('cls' if os.name == 'nt' else 'clear')
         csv_data, conspirator_list = load_csv_data(DATA_FILE)
         display_random_dialogue(csv_data, conspirator_list)
-        #display_random_dialogue_debug(csv_data, conspirator_list)
-
+        # display_random_dialogue_debug(csv_data, conspirator_list)
