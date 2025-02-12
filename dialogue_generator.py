@@ -10,6 +10,7 @@ DATA_FILE = os.path.normpath("data/dialogue_master_list.csv")
 # ANSI color codes for highlighting
 BOLD_GOLD = "\033[1;33m"  # Bold Gold for Conspirators
 BOLD_RED = "\033[1;31m"   # Bold Red for Victims
+BOLD_GREEN = "\033[1;32m"  # Bold Green for Non-Sequiturs
 RESET = "\033[0m"         # Reset color
 
 
@@ -19,6 +20,8 @@ def highlight_text(text, category):
         return f"{BOLD_GOLD}{text}{RESET}"
     elif category == "victim":
         return f"{BOLD_RED}{text}{RESET}"
+    elif category == "non_sequitur":
+        return f"{BOLD_GREEN}{text}{RESET}"
     return text
 
 
@@ -85,7 +88,9 @@ def display_random_dialogue_debug(data, conspirator_list):
 
 
 def display_random_dialogue(data, conspirator_list):
-    """Displays the dialogue with unique conspirators and randomized selections."""
+    """
+    Displays the dialogue with unique conspirators and randomized selections.
+    """
     used_conspirators = set()
 
     def get_unique_conspirator():
@@ -112,7 +117,7 @@ def display_random_dialogue(data, conspirator_list):
     print(f"{get_next_entry(data, 'victim', 'victim')}", end="\n\n")
     time.sleep(1)
     print("\n")
-    print(f"{get_next_entry(data, 'non_sequitur')}")
+    print(f"{get_next_entry(data, 'non_sequitur', 'non_sequitur')}")
     time.sleep(5)
 
 
